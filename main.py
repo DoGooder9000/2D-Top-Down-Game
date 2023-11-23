@@ -149,4 +149,6 @@ while running:
 
 	DrawPlayer()
 
+	UpdateBullets()
+
 	Update()
