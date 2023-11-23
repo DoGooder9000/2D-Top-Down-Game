@@ -18,6 +18,33 @@ class Bullet:
 
 		return GetTile(self.pos)
 
+class Enemy:
+	def __init__(self, pos: tuple, size: tuple, sprite: pygame.Surface) -> None:
+		self.pos = pos
+		self.size = size
+		self.angle = 0
+		self.originalSprite = sprite
+		self.sprite = sprite
+		self.rect = self.sprite.get_rect()
+		self.rect.center = pos
+	
+	def LookAt(self, pos: tuple):
+		self.angle = atan2(self.pos[1]-pos[1], self.pos[0]-pos[0])
+		self.sprite = pygame.transform.rotate(self.originalSprite, -degrees(self.angle))
+		self.GetRect()
+
+	def GetRect(self):
+		self.rect = self.sprite.get_rect()
+		self.rect.center = self.pos
+	
+	def Draw(self):
+		window.blit(self.sprite, self.rect)
+
+class Soldier(Enemy):
+	def __init__(self, pos: tuple) -> None:
+		super().__init__(pos, DefaultEnemySize, SoldierSprite)
+
+
 def DrawMap(color: tuple):
 	for r in range(len(map)):
 		for t in range(len(map[r])):
@@ -106,7 +133,13 @@ green = (0, 255, 0)
 blue = 	(0, 0, 255)
 
 GunGuySize = (75, 75)
-GunGuySprite = pygame.transform.scale(pygame.image.load("TopDownGunGuy.png"), GunGuySize)
+GunGuySprite = pygame.transform.scale(pygame.image.load("Sprites/TopDownGunGuy.png"), GunGuySize)
+
+DefaultEnemySize = (75, 75)
+SoldierSprite = pygame.transform.scale(pygame.image.load("Sprites/SoldierSprite.png"), DefaultEnemySize)
+SoldierSprite = pygame.transform.rotate(SoldierSprite, 180)
+
+Enemies = []
 
 clock = pygame.time.Clock()
 
