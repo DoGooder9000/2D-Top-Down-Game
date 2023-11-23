@@ -1,7 +1,13 @@
 import pygame
+import threading
 from math import sin, cos, tan, atan2, radians, degrees, sqrt
 
 pygame.init()
+
+class Bullet:
+	def __init__(self, angle: float, pos: tuple):
+		self.angle = angle
+		self.pos = pos
 
 def DrawMap(color: tuple):
 	for r in range(len(map)):
@@ -17,6 +23,9 @@ def GetTile(point: tuple):
 		return map[int(point[1]/tile_height)][int(point[0]/tile_width)]
 	except IndexError:
 		return None
+
+def Shoot():
+	pass
 
 def GetPoint(start_point: tuple, angle: float, length: float):
 	return (start_point[0] + cos(angle)*length, start_point[1] + sin(angle)*length)
@@ -42,6 +51,8 @@ PlayerAngle = 0
 
 PlayerSpeed = 1.5
 PlayerTurningSpeed = 2
+
+bullets = []
 
 
 map = [
@@ -91,11 +102,13 @@ while running:
 		elif event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_ESCAPE:
 				running = False
+		
+		elif event.type == pygame.MOUSEBUTTONDOWN:
+			Shoot()
 
 
 	mousePos = pygame.mouse.get_pos()
 	PlayerAngle = atan2(mousePos[1]-PlayerPos[1], mousePos[0]-PlayerPos[0])
-
 	
 	keys = pygame.key.get_pressed()
 
