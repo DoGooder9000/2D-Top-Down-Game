@@ -5,9 +5,18 @@ from math import sin, cos, tan, atan2, radians, degrees, sqrt
 pygame.init()
 
 class Bullet:
-	def __init__(self, angle: float, pos: tuple):
+	def __init__(self, angle: float, start_pos: tuple):
 		self.angle = angle
-		self.pos = pos
+
+		self.pos = BulletOffsetVector.rotate(degrees(self.angle)) + start_pos #So that the bullets looks like it is coming out of the gun
+		
+	
+	def Update(self, color: tuple = (255, 255, 0)):
+		self.pos = GetPoint(self.pos, self.angle, BulletSpeed)
+
+		pygame.draw.circle(window, color, self.pos, BulletRadius)
+
+		return GetTile(self.pos)
 
 def DrawMap(color: tuple):
 	for r in range(len(map)):
@@ -25,7 +34,16 @@ def GetTile(point: tuple):
 		return None
 
 def Shoot():
-	pass
+	global bullets
+
+	bullets.append(Bullet(PlayerAngle, PlayerPos))
+
+def UpdateBullets():
+	global bullets
+
+	for bullet in bullets:
+		if bullet.Update() == "X":
+			bullets.remove(bullet)
 
 def GetPoint(start_point: tuple, angle: float, length: float):
 	return (start_point[0] + cos(angle)*length, start_point[1] + sin(angle)*length)
@@ -51,6 +69,12 @@ PlayerAngle = 0
 
 PlayerSpeed = 1.5
 PlayerTurningSpeed = 2
+
+BulletSpeed = 20
+BulletRadius = 2.5
+
+BulletOffset = (12, 19)
+BulletOffsetVector = pygame.math.Vector2(BulletOffset[0], BulletOffset[1])
 
 bullets = []
 
@@ -116,7 +140,7 @@ while running:
 		NextPos = (PlayerPos[0]+cos(PlayerAngle)*PlayerSpeed*dt, PlayerPos[1]+sin(PlayerAngle)*PlayerSpeed*dt)
 		if GetTile(NextPos) != "X" and Distance(PlayerPos, mousePos) > 2: PlayerPos = NextPos
 	if keys[pygame.K_s]:
-		NextPosPos = (PlayerPos[0]-cos(PlayerAngle)*PlayerSpeed*dt, PlayerPos[1]-sin(PlayerAngle)*PlayerSpeed*dt)
+		NextPos = (PlayerPos[0]-cos(PlayerAngle)*PlayerSpeed*dt, PlayerPos[1]-sin(PlayerAngle)*PlayerSpeed*dt)
 		if GetTile(NextPos) != "X" and Distance(PlayerPos, mousePos) > 2: PlayerPos = NextPos
 	
 	window.fill((100, 100, 100))
@@ -124,5 +148,5 @@ while running:
 	DrawMap(white)
 
 	DrawPlayer()
-	
+
 	Update()
