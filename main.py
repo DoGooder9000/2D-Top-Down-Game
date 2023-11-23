@@ -19,8 +19,9 @@ class Bullet:
 		return GetTile(self.pos)
 
 class Enemy:
-	def __init__(self, pos: tuple, size: tuple, sprite: pygame.Surface) -> None:
+	def __init__(self, pos: tuple, speed: float, size: tuple, sprite: pygame.Surface) -> None:
 		self.pos = pos
+		self.speed = speed
 		self.size = size
 		self.angle = 0
 		self.originalSprite = sprite
@@ -29,7 +30,7 @@ class Enemy:
 		self.rect.center = pos
 	
 	def LookAt(self, pos: tuple):
-		self.angle = atan2(self.pos[1]-pos[1], self.pos[0]-pos[0])
+		self.angle = atan2(pos[1]-self.pos[1], pos[0]-self.pos[0])
 		self.sprite = pygame.transform.rotate(self.originalSprite, -degrees(self.angle))
 		self.GetRect()
 
@@ -39,10 +40,13 @@ class Enemy:
 	
 	def Draw(self):
 		window.blit(self.sprite, self.rect)
+	
+	def Move(self):
+		self.pos = GetPoint(self.pos, self.angle, self.speed)
 
 class Soldier(Enemy):
 	def __init__(self, pos: tuple) -> None:
-		super().__init__(pos, DefaultEnemySize, SoldierSprite)
+		super().__init__(pos, DefaultEnemySpeed, DefaultEnemySize, SoldierSprite)
 
 
 def DrawMap(color: tuple):
@@ -52,7 +56,10 @@ def DrawMap(color: tuple):
 				pygame.draw.rect(window, color, pygame.Rect((t*tile_width, r*tile_height), (tile_width, tile_height)))
 
 def DrawPlayer():
-	window.blit(pygame.transform.rotate(GunGuySprite, -degrees(PlayerAngle)), (PlayerPos[0]-GunGuySize[0]/2, PlayerPos[1]-GunGuySize[1]/2))
+	r = GunGuySprite.get_rect()
+	r.center = PlayerPos
+
+	window.blit(pygame.transform.rotate(GunGuySprite, -degrees(PlayerAngle)), r)
 
 def GetTile(point: tuple):
 	try:
@@ -61,16 +68,30 @@ def GetTile(point: tuple):
 		return None
 
 def Shoot():
-	global bullets
+	global Bullets
 
-	bullets.append(Bullet(PlayerAngle, PlayerPos))
+	Bullets.append(Bullet(PlayerAngle, PlayerPos))
 
 def UpdateBullets():
-	global bullets
+	global Bullets, Enemies
 
-	for bullet in bullets:
+	for bullet in Bullets:
 		if bullet.Update() == "X":
-			bullets.remove(bullet)
+			Bullets.remove(bullet)
+		
+		else:
+			for enemy in Enemies:
+				if enemy.rect.collidepoint(bullet.pos):
+					Bullets.remove(bullet)
+					Enemies.remove(enemy)
+
+def HandleEnemies():
+	global Enemies
+
+	for enemy in Enemies:
+		enemy.LookAt(PlayerPos)
+		enemy.Move()
+		enemy.Draw()
 
 def GetPoint(start_point: tuple, angle: float, length: float):
 	return (start_point[0] + cos(angle)*length, start_point[1] + sin(angle)*length)
@@ -103,7 +124,7 @@ BulletRadius = 2.5
 BulletOffset = (12, 19)
 BulletOffsetVector = pygame.math.Vector2(BulletOffset[0], BulletOffset[1])
 
-bullets = []
+Bullets = []
 
 
 map = [
@@ -136,10 +157,11 @@ GunGuySize = (75, 75)
 GunGuySprite = pygame.transform.scale(pygame.image.load("Sprites/TopDownGunGuy.png"), GunGuySize)
 
 DefaultEnemySize = (75, 75)
-SoldierSprite = pygame.transform.scale(pygame.image.load("Sprites/SoldierSprite.png"), DefaultEnemySize)
-SoldierSprite = pygame.transform.rotate(SoldierSprite, 180)
+DefaultEnemySpeed = 2.0
 
-Enemies = []
+SoldierSprite = pygame.transform.scale(pygame.image.load("Sprites/SoldierSprite.png"), DefaultEnemySize)
+
+Enemies = [Soldier((500, 500))]
 
 clock = pygame.time.Clock()
 
@@ -181,6 +203,8 @@ while running:
 	DrawMap(white)
 
 	DrawPlayer()
+
+	HandleEnemies()
 
 	UpdateBullets()
 
