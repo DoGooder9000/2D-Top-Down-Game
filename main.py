@@ -1,5 +1,5 @@
 import pygame
-import threading
+import random
 from math import sin, cos, tan, atan2, radians, degrees, sqrt
 
 pygame.init()
@@ -84,6 +84,7 @@ def UpdateBullets():
 				if enemy.rect.collidepoint(bullet.pos):
 					Bullets.remove(bullet)
 					Enemies.remove(enemy)
+					break
 
 def HandleEnemies():
 	global Enemies
@@ -92,6 +93,10 @@ def HandleEnemies():
 		enemy.LookAt(PlayerPos)
 		enemy.Move()
 		enemy.Draw()
+
+def GenerateEnemies(amount: int):
+	for i in range(amount):
+		Enemies.append(Soldier((random.randint(0, window_width), random.randint(0, window_height))))
 
 def GetPoint(start_point: tuple, angle: float, length: float):
 	return (start_point[0] + cos(angle)*length, start_point[1] + sin(angle)*length)
@@ -130,16 +135,16 @@ Bullets = []
 map = [
 	"XXXXXXXXXXXXX",
 	"X           X",
-	"X  XX XXX   X",
-	"X  X   X    X",
-	"X  X    XXX X",
-	"X  XXXX   X X",
-	"X      X  X X",
+	"X           X",
+	"X           X",
+	"X           X",
+	"X           X",
+	"X           X",
 	"XXXXXXXXXXX X",
 	"X           X",
-	"X  XXXX     X",
-	"X  X  X     X",
-	"X  XXXX     X",
+	"X           X",
+	"X           X",
+	"X           X",
 	"X           X",
 	"XXXXXXXXXXXXX",
 	]
@@ -161,7 +166,9 @@ DefaultEnemySpeed = 2.0
 
 SoldierSprite = pygame.transform.scale(pygame.image.load("Sprites/SoldierSprite.png"), DefaultEnemySize)
 
-Enemies = [Soldier((500, 500))]
+Enemies = []
+
+GenerateEnemies(20)
 
 clock = pygame.time.Clock()
 
@@ -181,6 +188,10 @@ while running:
 		elif event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_ESCAPE:
 				running = False
+			elif event.key == pygame.K_r:
+				GenerateEnemies(1000)
+			elif event.key == pygame.K_c:
+				Enemies.clear()
 		
 		elif event.type == pygame.MOUSEBUTTONDOWN:
 			Shoot()
